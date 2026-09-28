@@ -1,0 +1,36 @@
+<h1>Services</h1>
+
+@if (loading()) {
+  <app-state-message kind="loading" message="Loading services…" />
+} @else if (error(); as message) {
+  <app-state-message kind="error" [message]="message" />
+} @else if (services().length === 0) {
+  <app-state-message kind="empty" message="No services available yet." />
+} @else {
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Duration</th>
+        <th>Price</th>
+        <th>Active</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (service of services(); track service.id) {
+        <tr>
+          <td>{{ service.name }}</td>
+          <td>{{ service.description ?? '—' }}</td>
+          <td>{{ service.durationInMinutes }} min</td>
+          <td>{{ service.price | number: '1.2-2' }}</td>
+          <td>
+            <span class="badge" [class.badge--off]="!service.isActive">
+              {{ service.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

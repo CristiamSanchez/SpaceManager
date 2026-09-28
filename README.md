@@ -300,9 +300,17 @@ Docker.
 
 ### Fase 15
 
-CI/CD.
+Git/GitHub: repositorio inicializado con `.gitignore` y baseline único en `main`.
 
 ### Fase 16
+
+Frontend Angular (`src/SpaceManager.Web`).
+
+### Fase 17
+
+CI/CD.
+
+### Fase 18
 
 Revisión final y documentación.
 
@@ -346,8 +354,10 @@ El agente no debe implementar fases futuras salvo que se solicite explícitament
 | 12. Validaciones   | Completada |
 | 13. Tests          | Completada |
 | 14. Docker         | Completada |
-| 15. CI/CD          | Pendiente |
-| 16. Revisión final | Pendiente |
+| 15. Git/GitHub     | Completada |
+| 16. Frontend       | Completada |
+| 17. CI/CD          | Pendiente |
+| 18. Revisión final | Pendiente |
 
 ### Ejecución local (Docker + PostgreSQL)
 
@@ -364,4 +374,22 @@ El agente no debe implementar fases futuras salvo que se solicite explícitament
 5. Tests: `dotnet test`.
 
 El password real vive solo en `.env`/variables de entorno: `appsettings.json` conserva el placeholder `CHANGE_ME` y no debe modificarse. El secreto JWT de desarrollo es un placeholder; en producción se sustituye por `Jwt__SecretKey`. Para crear un Admin en desarrollo, regístralo por la API y promóvelo con SQL directo en el contenedor (procedimiento exacto en `docs/project-state.md`, Fase 14).
+
+---
+
+## Frontend
+
+La aplicación Angular vive en [`src/SpaceManager.Web`](src/SpaceManager.Web) y consume `Reservation.Api` (`http://localhost:5163`).
+
+- Angular 22 con standalone components, Router, HttpClient (interceptor JWT) y Reactive Forms. Sin librerías de UI ni de estado global (sin Material/PrimeNG/Tailwind/NgRx); la única configuración de entorno es `environment.apiUrl` y no hay secretos en el frontend.
+- Rutas públicas: `/login`, `/register`, `/services`, `/professionals`. Rutas protegidas: `/dashboard`, `/reservations` (redirigen a `/login` si no hay JWT).
+- Ejecución local, con la API y PostgreSQL en marcha:
+
+  ```bash
+  cd src/SpaceManager.Web
+  npm install
+  npm start    # http://localhost:4200
+  ```
+
+La API permite en desarrollo el origen `http://localhost:4200` mediante una política CORS explícita de solo desarrollo en `Program.cs` (nunca `AllowAnyOrigin` con credenciales ni una política amplia de producción).
 

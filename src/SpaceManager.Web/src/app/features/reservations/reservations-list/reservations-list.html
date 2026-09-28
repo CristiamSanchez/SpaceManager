@@ -1,0 +1,34 @@
+<h1>My reservations</h1>
+
+@if (loading()) {
+  <app-state-message kind="loading" message="Loading reservations…" />
+} @else if (error(); as message) {
+  <app-state-message kind="error" [message]="message" />
+} @else if (reservations().length === 0) {
+  <app-state-message kind="empty" message="You have no reservations yet." />
+} @else {
+  <table>
+    <thead>
+      <tr>
+        <th>Start</th>
+        <th>End</th>
+        <th>Status</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (reservation of reservations(); track reservation.id) {
+        <tr>
+          <td>{{ reservation.startAt | date: 'medium' }}</td>
+          <td>{{ reservation.endAt | date: 'medium' }}</td>
+          <td>
+            <span class="badge" [class.badge--off]="reservation.status === 'Cancelled'">
+              {{ reservation.status }}
+            </span>
+          </td>
+          <td>{{ reservation.notes ?? '—' }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

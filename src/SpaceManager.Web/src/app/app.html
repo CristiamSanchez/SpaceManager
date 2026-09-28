@@ -1,0 +1,21 @@
+<header class="topbar">
+  <a routerLink="/dashboard" class="brand">SpaceManager</a>
+
+  <nav>
+    <a routerLink="/services" routerLinkActive="active">Services</a>
+    <a routerLink="/professionals" routerLinkActive="active">Professionals</a>
+
+    @if (auth.isLoggedIn()) {
+      <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+      <a routerLink="/reservations" routerLinkActive="active">Reservations</a>
+      <button type="button" class="nav-button" (click)="auth.logout()">Log out</button>
+    } @else {
+      <a routerLink="/login" routerLinkActive="active">Sign in</a>
+      <a routerLink="/register" routerLinkActive="active">Register</a>
+    }
+  </nav>
+</header>
+
+<main class="container">
+  <router-outlet />
+</main>

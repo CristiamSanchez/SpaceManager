@@ -1,0 +1,17 @@
+.state {
+  margin: 1rem 0;
+  font-size: 0.95rem;
+}
+
+.state--loading {
+  color: #667;
+}
+
+.state--error {
+  color: #b00020;
+}
+
+.state--empty {
+  color: #667;
+  font-style: italic;
+}

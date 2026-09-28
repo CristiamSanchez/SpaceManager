@@ -1,0 +1,32 @@
+<h1>Professionals</h1>
+
+@if (loading()) {
+  <app-state-message kind="loading" message="Loading professionals…" />
+} @else if (error(); as message) {
+  <app-state-message kind="error" [message]="message" />
+} @else if (professionals().length === 0) {
+  <app-state-message kind="empty" message="No professionals available yet." />
+} @else {
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Active</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (professional of professionals(); track professional.id) {
+        <tr>
+          <td>{{ professional.name }}</td>
+          <td>{{ professional.description ?? '—' }}</td>
+          <td>
+            <span class="badge" [class.badge--off]="!professional.isActive">
+              {{ professional.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

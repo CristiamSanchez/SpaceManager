@@ -23,8 +23,67 @@ Estado actual del proyecto y decisiones tomadas. Se actualiza al finalizar cada 
 | 12. Validaciones | ✅ Completada | 2026-09-28 |
 | 13. Tests | ✅ Completada | 2026-09-28 |
 | 14. Docker | ✅ Completada | 2026-09-28 |
-| 15. CI/CD | ⬜ Pendiente | |
-| 16. Revisión final | ⬜ Pendiente | |
+| 15. Git/GitHub | ✅ Completada | 2026-09-28 |
+| 16. Frontend Angular | ✅ Completada | 2026-09-28 |
+| 17. CI/CD | ⬜ Pendiente | |
+| 18. Revisión final | ⬜ Pendiente | |
+
+---
+
+## Fase 16 — Angular Frontend Foundation (completada)
+
+### Entorno y scaffold
+
+* **Stack:** Angular **22.1.0** (standalone components, Router, HttpClient, Reactive Forms), TypeScript ~6.0.2, Angular CLI global 22.1.5, Node.js v24.19.0, npm 11.17.0.
+* **Ubicación:** `src/SpaceManager.Web/` (app generada con `ng new … --directory src/SpaceManager.Web --style=css --ssr=false --skip-tests`; trae su propio `.gitignore` que ignora `node_modules/` y `dist/`).
+* **Restricciones cumplidas:** sin NgRx/Akita/Material/PrimeNG/Tailwind ni librerías de estado o UI; sin SSR; sin secretos en el frontend (solo `environment.apiUrl`); sin GitHub Actions/Pages/despliegue; sin cambios en la lógica del backend salvo el CORS de desarrollo.
+
+### Estructura
+
+```text
+src/SpaceManager.Web/src/app/
+├── core/
+│   ├── models/api.models.ts            # interfaces = DTOs reales de la API
+│   ├── services/                       # AuthService, ServiceApi, ProfessionalApi, ReservationApi, HttpErrorService
+│   ├── interceptors/auth.interceptor.ts
+│   └── guards/auth.guard.ts
+├── features/                           # login, register, dashboard, services, professionals, reservations
+├── shared/state-message/               # componente reutilizable loading/error/empty
+├── app.routes.ts / app.config.ts / app.ts (shell + navbar)
+└── environments/                       # environment.ts + environment.development.ts (fileReplacements en development)
+```
+
+* **Modelos TypeScript:** copian exactamente los DTOs del backend — `User`, `Login/Register`, `LoginResponse`, `Service`, `Professional`, `Availability`, `ProfessionalService` (assign), `Reservation`; enums como uniones de strings (`UserRole`, `ReservationStatus`, `DayOfWeek`), fechas/horas como `string`.
+* **Servicios core:** los componentes nunca llaman a HTTP directamente; toda URL sale de `environment.apiUrl = 'http://localhost:5163'` (única configuración de entorno; `environment.development.ts` reemplaza a `environment.ts` vía `fileReplacements` en el configuration de desarrollo).
+
+### Rutas, guard e interceptor
+
+* Públicas: `/login`, `/register`, `/services`, `/professionals`. Protegidas: `/dashboard`, `/reservations` con `authGuard` que redirige a `/login` si no hay JWT (autorización real: sigue siendo del backend; el guard es solo UX).
+* `authInterceptor` añade `Authorization: Bearer <token>` cuando existe sesión; se registra una sola vez en `app.config.ts` (`provideHttpClient(withInterceptors([authInterceptor]))`).
+* Login guarda JWT + usuario mínimo en localStorage (`sm.token`/`sm.user`; **nunca** la contraseña); logout limpia ambas claves y navega a `/login`.
+* Errores de API reutilizables vía `HttpErrorService` (bodies string del `Result<T>`, `{error}`, o fallback por status 401/403/404/sin conexión); estados de carga/vacío/error con `StateMessage`.
+
+### CORS de desarrollo (único cambio en el backend)
+
+* `src/Reservation.Api/Program.cs`: política **explícita de solo desarrollo** — `WithOrigins("http://localhost:4200")` + `AllowAnyHeader`/`AllowAnyMethod`, aplicada con `app.UseCors` antes de `UseAuthentication`. Sin `AllowAnyOrigin` (tampoco con credenciales — el JWT viaja en cabecera, no en cookies) y sin política amplia de producción; documentado en el código como configuración de desarrollo. Nada más cambió en la API.
+
+### Verificación
+
+* **Regresión backend:** `dotnet build` → 0 errores / 0 warnings; `dotnet test` → **73/73** (18 Domain + 55 Application).
+* **Builds frontend:** `ng build` desarrollo y producción → correctos; producción ≈ 284 kB iniciales (presupuesto 500 kB).
+* **E2E local** (`ng serve` :4200 + API :5163 + PostgreSQL :5435):
+  * CORS: preflight `OPTIONS` y `GET` con `Origin: http://localhost:4200` → `Access-Control-Allow-Origin: http://localhost:4200`; con origen distinto → sin cabecera (el navegador bloquea).
+  * Registro por formulario → 201 → login → JWT almacenado → `/dashboard` muestra nombre, email y rol `Client`.
+  * `/services` y `/professionals` cargan datos reales de PostgreSQL ("Corte de pelo", "Barbería Central").
+  * `/reservations` (protegida) → 200 con el interceptor (lista vacía para usuario nuevo; sin 401 → la cabecera llega y el backend la acepta).
+  * Guard: sin sesión, acceso directo a `/dashboard` → redirige a `/login`; logout elimina el JWT y el navbar vuelve a "Sign in / Register".
+  * Errores: credenciales inválidas → "Invalid email or password." (401 con cuerpo vacío → mensaje contextual del login); consola del navegador sin errores evitables.
+
+### Limitaciones / pendientes
+
+* **Cambios sin commitear:** la fase 16 no pidió commit; el árbol de trabajo queda con estos cambios pendientes de que se solicite.
+* **Doc de fases anteriores:** este registro no tiene secciones de las fases 0, 3–6 y 15 (fase 15 — Git/GitHub — solo está reflejada en la tabla). Se reporta sin retomarlas.
+* Roles/permisos en frontend, disponibilidad y creación/cancelación de reservas desde la UI quedan para fases futuras; el backend sigue siendo la autoridad de autorización.
 
 ---
 

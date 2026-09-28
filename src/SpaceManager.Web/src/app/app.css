@@ -1,0 +1,50 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: #1f2937;
+}
+
+.brand {
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 1.05rem;
+}
+
+.topbar nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.topbar nav a {
+  color: #d1d5db;
+  text-decoration: none;
+  font-size: 0.95rem;
+  padding: 0.25rem 0;
+  border-bottom: 2px solid transparent;
+}
+
+.topbar nav a:hover,
+.topbar nav a.active {
+  color: #fff;
+  border-bottom-color: #60a5fa;
+}
+
+.nav-button {
+  background: transparent;
+  color: #d1d5db;
+  border: 1px solid #4b5563;
+  padding: 0.3rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.nav-button:hover {
+  color: #fff;
+  border-color: #9ca3af;
+}

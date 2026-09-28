@@ -79,9 +79,20 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy(Policies.AdminOnly, policy => policy.RequireRole("Admin"));
 });
 
+// Development-only CORS: lets the Angular dev server (http://localhost:4200)
+// call this API during local development. Explicit origin (never AllowAnyOrigin)
+// and no credentials — the JWT travels in the Authorization header.
+const string DevCorsPolicy = "DevCors";
+builder.Services.AddCors(options =>
+    options.AddPolicy(DevCorsPolicy, policy => policy
+        .WithOrigins("http://localhost:4200")
+        .AllowAnyHeader()
+        .AllowAnyMethod()));
+
 var app = builder.Build();
 
 app.UseExceptionHandler();
+app.UseCors(DevCorsPolicy);
 app.UseAuthentication();
 app.UseAuthorization();
 
