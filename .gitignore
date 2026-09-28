@@ -1,0 +1,10 @@
+# Local environment files — never commit secrets
+.env
+
+# Build output
+bin/
+obj/
+
+# IDE/user files
+.vs/
+*.user
