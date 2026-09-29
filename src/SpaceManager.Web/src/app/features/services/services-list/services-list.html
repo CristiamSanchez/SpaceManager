@@ -1,4 +1,57 @@
-<h1>Services</h1>
+<div class="page-head">
+  <h1>Services</h1>
+  @if (auth.isAdmin() && !creating() && !editingId()) {
+    <button type="button" class="button-small" (click)="startCreate()">+ New service</button>
+  }
+</div>
+
+@if (auth.isAdmin() && (creating() || editingId())) {
+  <div class="card">
+    <h2>{{ editingId() ? 'Edit service' : 'New service' }}</h2>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="form-row">
+        <div class="field">
+          <label for="svc-name">Name</label>
+          <input id="svc-name" formControlName="name" placeholder="Corte de pelo" />
+        </div>
+        <div class="field">
+          <label for="svc-desc">Description</label>
+          <input id="svc-desc" formControlName="description" placeholder="Optional" />
+        </div>
+        <div class="field">
+          <label for="svc-duration">Duration (min)</label>
+          <input id="svc-duration" type="number" min="1" formControlName="durationInMinutes" />
+        </div>
+        <div class="field">
+          <label for="svc-price">Price</label>
+          <input id="svc-price" type="number" min="0" step="0.01" formControlName="price" />
+        </div>
+      </div>
+
+      @if (form.controls.name.touched && form.controls.name.invalid) {
+        <p class="field-error">Name is required.</p>
+      }
+      @if (form.controls.durationInMinutes.touched && form.controls.durationInMinutes.invalid) {
+        <p class="field-error">Duration must be greater than zero.</p>
+      }
+      @if (form.controls.price.touched && form.controls.price.invalid) {
+        <p class="field-error">Price cannot be negative.</p>
+      }
+
+      @if (actionError(); as message) {
+        <app-state-message kind="error" [message]="message" />
+      }
+
+      <div class="form-actions">
+        <button type="submit" [disabled]="saving()">
+          {{ saving() ? 'Saving…' : editingId() ? 'Save changes' : 'Create service' }}
+        </button>
+        <button type="button" class="button-secondary" (click)="cancelForm()">Cancel</button>
+      </div>
+    </form>
+  </div>
+}
 
 @if (loading()) {
   <app-state-message kind="loading" message="Loading services…" />
@@ -15,6 +68,9 @@
         <th>Duration</th>
         <th>Price</th>
         <th>Active</th>
+        @if (auth.isAdmin()) {
+          <th class="col-actions"><span class="sr-only">Actions</span></th>
+        }
       </tr>
     </thead>
     <tbody>
@@ -29,8 +85,28 @@
               {{ service.isActive ? 'Active' : 'Inactive' }}
             </span>
           </td>
+          @if (auth.isAdmin()) {
+            <td class="col-actions">
+              <div class="row-actions">
+                <button type="button" class="button-secondary button-small" (click)="startEdit(service)">
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  [class]="service.isActive ? 'button-danger button-small' : 'button-small'"
+                  (click)="toggleActive(service)"
+                >
+                  {{ service.isActive ? 'Deactivate' : 'Activate' }}
+                </button>
+              </div>
+            </td>
+          }
         </tr>
       }
     </tbody>
   </table>
+
+  @if (auth.isAdmin() && actionError(); as message) {
+    <app-state-message kind="error" [message]="message" />
+  }
 }

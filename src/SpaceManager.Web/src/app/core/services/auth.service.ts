@@ -35,6 +35,8 @@ export class AuthService {
   /** Restored from localStorage on startup. */
   readonly user = signal<User | null>(readStoredUser());
   readonly isLoggedIn = computed(() => this.user() !== null);
+  /** Admin role check — gates the management UI (the API is authoritative). */
+  readonly isAdmin = computed(() => this.user()?.role === 'Admin');
 
   login(request: LoginRequest): Observable<LoginResponse> {
     return this.http

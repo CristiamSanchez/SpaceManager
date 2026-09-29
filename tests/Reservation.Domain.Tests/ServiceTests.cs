@@ -33,4 +33,41 @@ public class ServiceTests
         Assert.Equal(15.50m, service.Price);
         Assert.True(service.IsActive);
     }
+
+    [Fact]
+    public void Update_WithEmptyName_ThrowsArgumentException()
+    {
+        var service = new Service("Corte", null, 30, 10m);
+
+        Assert.Throws<ArgumentException>(() => service.Update("   ", null, 45, 20m));
+    }
+
+    [Fact]
+    public void Update_WithZeroDuration_ThrowsArgumentOutOfRangeException()
+    {
+        var service = new Service("Corte", null, 30, 10m);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => service.Update("Corte", null, 0, 20m));
+    }
+
+    [Fact]
+    public void Update_WithNegativePrice_ThrowsArgumentOutOfRangeException()
+    {
+        var service = new Service("Corte", null, 30, 10m);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => service.Update("Corte", null, 45, -1m));
+    }
+
+    [Fact]
+    public void Update_WithValidData_UpdatesFields()
+    {
+        var service = new Service("Corte", null, 30, 10m);
+
+        service.Update("Corte premium", "Incluye lavado", 45, 20m);
+
+        Assert.Equal("Corte premium", service.Name);
+        Assert.Equal("Incluye lavado", service.Description);
+        Assert.Equal(45, service.DurationInMinutes);
+        Assert.Equal(20m, service.Price);
+    }
 }

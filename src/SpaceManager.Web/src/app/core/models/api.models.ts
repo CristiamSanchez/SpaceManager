@@ -81,6 +81,39 @@ export interface ProfessionalServiceRequest {
   serviceId: string | null;
 }
 
+/** POST /api/services body (CreateServiceRequest). */
+export interface CreateServiceRequest {
+  name: string;
+  description: string | null;
+  durationInMinutes: number;
+  price: number;
+}
+
+/** PUT /api/services/{id} body (UpdateServiceRequest). */
+export interface UpdateServiceRequest extends CreateServiceRequest {
+  isActive: boolean;
+}
+
+/** POST /api/professionals body (CreateProfessionalRequest). */
+export interface CreateProfessionalRequest {
+  name: string;
+  description: string | null;
+}
+
+/** PUT /api/professionals/{id} body (UpdateProfessionalRequest). */
+export interface UpdateProfessionalRequest extends CreateProfessionalRequest {
+  isActive: boolean;
+}
+
+/** POST /api/professionals/{professionalId}/availability body (CreateAvailabilityRequest). */
+export interface CreateAvailabilityRequest {
+  dayOfWeek: DayOfWeek;
+  /** "HH:mm" or "HH:mm:ss" */
+  startTime: string;
+  /** "HH:mm" or "HH:mm:ss" */
+  endTime: string;
+}
+
 /** GET /api/reservations and /api/reservations/{id} (ReservationResponse). */
 export interface ReservationDto {
   id: string;

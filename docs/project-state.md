@@ -25,8 +25,76 @@ Estado actual del proyecto y decisiones tomadas. Se actualiza al finalizar cada 
 | 14. Docker | ✅ Completada | 2026-09-28 |
 | 15. Git/GitHub | ✅ Completada | 2026-09-28 |
 | 16. Frontend Angular | ✅ Completada | 2026-09-28 |
-| 17. CI/CD | ⬜ Pendiente | |
-| 18. Revisión final | ⬜ Pendiente | |
+| 17. Admin + tema oscuro | ✅ Completada | 2026-09-28 |
+| 18. CI/CD (GitHub Actions) | ✅ Completada | 2026-09-28 |
+| 19. Revisión final | ⬜ Pendiente | |
+
+---
+
+## Fase 18 — CI con GitHub Actions (completada)
+
+* **Workflow:** `.github/workflows/ci.yml`; se ejecuta en `push` y `pull_request` sobre `main`.
+* **Job `backend`:** `actions/setup-dotnet` con .NET `10.0.x` → `dotnet build Reservation.slnx` → `dotnet test Reservation.slnx --no-build`.
+* **Job `frontend`:** `actions/setup-node` con Node 24 (cache npm sobre `src/SpaceManager.Web/package-lock.json`) → `npm ci` → `npm run build` (producción).
+* **Alcance:** CI (build + test). No hay despliegue/CD (fuera de alcance por decisión del usuario; el CI ya es funcional y sin secretos).
+* **Seguridad:** el workflow no requiere ningún secret ni credencial; los tests son unitarios (Domain + Application) y no necesitan base de datos.
+
+---
+
+## Fase 17 — Frontend: administración CRUD y tema oscuro (completada)
+
+### 1. Endpoints de administración en la API (ampliación mínima)
+
+Las fases 6 y 9 solo incluían `POST`; para que el Admin pudiera administrar el catálogo completo se añadieron:
+
+| Método y ruta | Auth | Éxito | Fallos |
+| ------------- | ---- | ----- | ------ |
+| `PUT /api/services/{id}` | **Admin (nuevo)** | 200 con el servicio actualizado | 400, 404 |
+| `DELETE /api/services/{id}` | **Admin (nuevo)** | **204** (baja lógica `IsActive=false`) | 400, 404 |
+| `PUT /api/professionals/{id}` | **Admin (nuevo)** | 200 con el profesional actualizado | 400, 404 |
+| `DELETE /api/professionals/{id}` | **Admin (nuevo)** | **204** (baja lógica) | 400, 404 |
+
+* **Domain:** `Service.Update(...)` y `Professional.Update(...)` con las mismas invariantes que los constructores (nombre no vacío, duración > 0, precio ≥ 0) y `UpdatedAt`.
+* **Application:** `ServiceUseCases.UpdateAsync/DeactivateAsync` y `ProfessionalUseCases.UpdateAsync/DeactivateAsync` (valida → 404 → actualiza → persiste). `DeactivateAsync` es idempotente y **no borra filas**, preservando el historial de reservas (mismo patrón que el `DELETE` de disponibilidad de la Fase 10).
+* **Infrastructure:** `UpdateAsync` en `IServiceRepository`/`IProfessionalRepository` (attach + `SaveChangesAsync`, porque `GetByIdAsync` consulta con `AsNoTracking`).
+* **API:** `UpdateServiceRequest(Name, Description, DurationInMinutes, Price, IsActive)` y `UpdateProfessionalRequest(Name, Description, IsActive)`, reflejo del `UpdateAvailabilityRequest` existente; el `IsActive` del `PUT` permite reactivar.
+
+### 2. Panel de administración en el Angular
+
+* `AuthService` expone `isAdmin` (computed sobre el usuario en `localStorage`); toda la UI de gestión se renderiza bajo esa señal y **el backend sigue siendo la autoridad** (401/403 para Client o anónimo).
+* **Services:** alta (`+ New service`), edición en línea y Desactivar/Activar por fila.
+* **Professionals:** alta, edición, Desactivar/Activar y botón **Manage** que abre un panel con:
+  * *Services offered:* checkboxes que asignan/quitan servicios (`POST`/`DELETE /api/professionals/{id}/services`);
+  * *Schedule:* tabla de disponibilidad con **Remove** y formulario de alta de periodos (`POST`/`DELETE .../availability`).
+* **Reservations:** el Admin ve **"All reservations"** con columnas User/Service/Professional (IDs truncados; el `title` muestra el completo) y botón **Cancel** (Pending/Confirmed → `DELETE /api/reservations/{id}`); el Client conserva su vista "My reservations".
+* **Dashboard:** tarjeta con el rol y una descripción distinta según Admin/Client.
+
+### 3. Tema oscuro y layout compacto
+
+* `styles.css` define la paleta con variables CSS (`--bg #0d1117`, `--surface`, `--border`, `--text`, `--accent`, …), `color-scheme: dark` y `<meta name="color-scheme" content="dark">`; ningún componente colorea en duro valores claros.
+* Densidad: padding reducido en tablas/formularios, contenedor de 1080px, topbar sticky con borde, badges y estados (loading/error/empty) sobre la paleta oscura; controles nativos (`select`, `time`, scrollbars) en oscuro.
+
+### 4. Verificación
+
+| Comprobación | Resultado |
+| ------------ | --------- |
+| `dotnet build` | 0 warnings, 0 errors |
+| `dotnet test` | **92/92** (24 Domain + 68 Application; +19 nuevos de esta fase) |
+| `ng build` dev + prod | OK, dentro del presupuesto de tamaño |
+| UI Admin (E2E navegador) | crear → editar → desactivar → reactivar servicio; crear profesional; asignar servicio; añadir disponibilidad (Lun 09:00–17:00); cancelar reserva (Pending → Cancelled) |
+| UI Client (E2E navegador) | sin controles de administración; encabezado "My reservations" |
+| Autorización (curl) | `PUT`/`DELETE` sin token → **401**; con Client → **403**; con Admin → 200/204 |
+| Consola del navegador | 0 errores |
+
+### 5. Capturas
+
+`docs/screenshots/`: `login-dark.png`, `dashboard-admin.png`, `services-admin.png`, `professionals-manage.png`, `reservations-admin.png`, `services-client.png` (referenciadas desde el README).
+
+### 6. Decisiones y limitaciones
+
+* El borrado de servicios/profesionales es **lógico** (`IsActive=false`): no se destruye historial referenciado por reservas; la reactivación se hace con `PUT` + `isActive: true`.
+* La disponibilidad se administra con alta/baja (POST/DELETE); el `PUT` de disponibilidad existe en la API pero no tiene formulario de edición en el frontend.
+* Los datos locales de demostración quedaron como "Afeitado", "Corte de pelo" y "Recorte de barba" (base de desarrollo, sin credenciales sensibles).
 
 ---
 

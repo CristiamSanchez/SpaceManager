@@ -14,6 +14,11 @@ public record CreateProfessionalRequest(
     string? Name,
     string? Description);
 
+public record UpdateProfessionalRequest(
+    string? Name,
+    string? Description,
+    bool IsActive);
+
 public static class ProfessionalEndpoints
 {
     public static IEndpointRouteBuilder MapProfessionalEndpoints(this IEndpointRouteBuilder app)
@@ -23,6 +28,9 @@ public static class ProfessionalEndpoints
         group.MapGet("/", GetAllAsync);
         group.MapGet("/{id:guid}", GetByIdAsync);
         group.MapPost("/", CreateAsync).RequireAuthorization(Policies.AdminOnly);
+        group.MapPut("/{id:guid}", UpdateAsync).RequireAuthorization(Policies.AdminOnly);
+        // Soft deactivation (IsActive = false), mirroring the availability endpoint.
+        group.MapDelete("/{id:guid}", DeactivateAsync).RequireAuthorization(Policies.AdminOnly);
 
         return app;
     }
@@ -59,6 +67,31 @@ public static class ProfessionalEndpoints
 
         var professional = result.Value!;
         return Results.Created($"/api/professionals/{professional.Id}", Map(professional));
+    }
+
+    private static async Task<IResult> UpdateAsync(
+        Guid id,
+        UpdateProfessionalRequest request,
+        ProfessionalUseCases useCases,
+        CancellationToken cancellationToken)
+    {
+        var result = await useCases.UpdateAsync(
+            id,
+            request.Name,
+            request.Description,
+            request.IsActive,
+            cancellationToken);
+
+        return result.IsSuccess ? Results.Ok(Map(result.Value!)) : ResultTranslation.ToHttpError(result);
+    }
+
+    private static async Task<IResult> DeactivateAsync(
+        Guid id,
+        ProfessionalUseCases useCases,
+        CancellationToken cancellationToken)
+    {
+        var result = await useCases.DeactivateAsync(id, cancellationToken);
+        return result.IsSuccess ? Results.NoContent() : ResultTranslation.ToHttpError(result);
     }
 
     private static ProfessionalResponse Map(Professional professional) =>

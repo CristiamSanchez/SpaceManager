@@ -18,6 +18,13 @@ public record CreateServiceRequest(
     int? DurationInMinutes,
     decimal? Price);
 
+public record UpdateServiceRequest(
+    string? Name,
+    string? Description,
+    int? DurationInMinutes,
+    decimal? Price,
+    bool IsActive);
+
 public static class ServiceEndpoints
 {
     public static IEndpointRouteBuilder MapServiceEndpoints(this IEndpointRouteBuilder app)
@@ -27,6 +34,9 @@ public static class ServiceEndpoints
         group.MapGet("/", GetAllAsync);
         group.MapGet("/{id:guid}", GetByIdAsync);
         group.MapPost("/", CreateAsync).RequireAuthorization(Policies.AdminOnly);
+        group.MapPut("/{id:guid}", UpdateAsync).RequireAuthorization(Policies.AdminOnly);
+        // Soft deactivation (IsActive = false), mirroring the availability endpoint.
+        group.MapDelete("/{id:guid}", DeactivateAsync).RequireAuthorization(Policies.AdminOnly);
 
         return app;
     }
@@ -65,6 +75,33 @@ public static class ServiceEndpoints
 
         var service = result.Value!;
         return Results.Created($"/api/services/{service.Id}", Map(service));
+    }
+
+    private static async Task<IResult> UpdateAsync(
+        Guid id,
+        UpdateServiceRequest request,
+        ServiceUseCases useCases,
+        CancellationToken cancellationToken)
+    {
+        var result = await useCases.UpdateAsync(
+            id,
+            request.Name,
+            request.Description,
+            request.DurationInMinutes,
+            request.Price,
+            request.IsActive,
+            cancellationToken);
+
+        return result.IsSuccess ? Results.Ok(Map(result.Value!)) : ResultTranslation.ToHttpError(result);
+    }
+
+    private static async Task<IResult> DeactivateAsync(
+        Guid id,
+        ServiceUseCases useCases,
+        CancellationToken cancellationToken)
+    {
+        var result = await useCases.DeactivateAsync(id, cancellationToken);
+        return result.IsSuccess ? Results.NoContent() : ResultTranslation.ToHttpError(result);
     }
 
     private static ServiceResponse Map(Service service) =>

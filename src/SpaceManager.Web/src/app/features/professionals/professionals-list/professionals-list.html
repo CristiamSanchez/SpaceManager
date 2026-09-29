@@ -1,4 +1,43 @@
-<h1>Professionals</h1>
+<div class="page-head">
+  <h1>Professionals</h1>
+  @if (auth.isAdmin() && !creating() && !editingId()) {
+    <button type="button" class="button-small" (click)="startCreate()">+ New professional</button>
+  }
+</div>
+
+@if (auth.isAdmin() && (creating() || editingId())) {
+  <div class="card">
+    <h2>{{ editingId() ? 'Edit professional' : 'New professional' }}</h2>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="form-row">
+        <div class="field">
+          <label for="pro-name">Name</label>
+          <input id="pro-name" formControlName="name" placeholder="Barbería Central" />
+        </div>
+        <div class="field">
+          <label for="pro-desc">Description</label>
+          <input id="pro-desc" formControlName="description" placeholder="Optional" />
+        </div>
+      </div>
+
+      @if (form.controls.name.touched && form.controls.name.invalid) {
+        <p class="field-error">Name is required.</p>
+      }
+
+      @if (actionError(); as message) {
+        <app-state-message kind="error" [message]="message" />
+      }
+
+      <div class="form-actions">
+        <button type="submit" [disabled]="saving()">
+          {{ saving() ? 'Saving…' : editingId() ? 'Save changes' : 'Create professional' }}
+        </button>
+        <button type="button" class="button-secondary" (click)="cancelForm()">Cancel</button>
+      </div>
+    </form>
+  </div>
+}
 
 @if (loading()) {
   <app-state-message kind="loading" message="Loading professionals…" />
@@ -13,6 +52,9 @@
         <th>Name</th>
         <th>Description</th>
         <th>Active</th>
+        @if (auth.isAdmin()) {
+          <th class="col-actions"><span class="sr-only">Actions</span></th>
+        }
       </tr>
     </thead>
     <tbody>
@@ -25,8 +67,144 @@
               {{ professional.isActive ? 'Active' : 'Inactive' }}
             </span>
           </td>
+          @if (auth.isAdmin()) {
+            <td class="col-actions">
+              <div class="row-actions">
+                <button
+                  type="button"
+                  class="button-small"
+                  [class.button-secondary]="managed()?.id !== professional.id"
+                  (click)="toggleManage(professional)"
+                >
+                  {{ managed()?.id === professional.id ? 'Close' : 'Manage' }}
+                </button>
+                <button
+                  type="button"
+                  class="button-secondary button-small"
+                  (click)="startEdit(professional)"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  [class]="professional.isActive ? 'button-danger button-small' : 'button-small'"
+                  (click)="toggleActive(professional)"
+                >
+                  {{ professional.isActive ? 'Deactivate' : 'Activate' }}
+                </button>
+              </div>
+            </td>
+          }
         </tr>
       }
     </tbody>
   </table>
+
+  @if (auth.isAdmin() && actionError(); as message) {
+    <app-state-message kind="error" [message]="message" />
+  }
+}
+
+@if (auth.isAdmin(); as isAdmin) {
+  @if (isAdmin && managed(); as professional) {
+    <div class="section">
+      <div class="section-head">
+        <h2>Manage — {{ professional.name }}</h2>
+        <button type="button" class="button-secondary button-small" (click)="toggleManage(professional)">
+          Close
+        </button>
+      </div>
+
+      @if (manageError(); as message) {
+        <app-state-message kind="error" [message]="message" />
+      }
+
+      <h3>Services offered</h3>
+      @if (servicesLoading()) {
+        <app-state-message kind="loading" message="Loading services…" />
+      } @else {
+        <ul class="check-list">
+          @for (service of allServices(); track service.id) {
+            <li>
+              <label>
+                <input
+                  type="checkbox"
+                  [checked]="isAssigned(service.id)"
+                  (change)="toggleService(service)"
+                />
+                <span>
+                  {{ service.name }}
+                  <span class="muted">· {{ service.durationInMinutes }} min · {{ service.price | number: '1.2-2' }}</span>
+                </span>
+              </label>
+            </li>
+          }
+        </ul>
+      }
+
+      <h3>Schedule</h3>
+      @if (availabilityLoading()) {
+        <app-state-message kind="loading" message="Loading schedule…" />
+      } @else if (availability().length === 0) {
+        <app-state-message kind="empty" message="No availability periods yet." />
+      } @else {
+        <table>
+          <thead>
+            <tr>
+              <th>Day</th>
+              <th>From</th>
+              <th>To</th>
+              <th class="col-actions"><span class="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (period of availability(); track period.id) {
+              <tr>
+                <td>{{ period.dayOfWeek }}</td>
+                <td>{{ period.startTime.slice(0, 5) }}</td>
+                <td>{{ period.endTime.slice(0, 5) }}</td>
+                <td class="col-actions">
+                  <div class="row-actions">
+                    <button
+                      type="button"
+                      class="button-danger button-small"
+                      (click)="removeAvailability(period)"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+
+      <form [formGroup]="availabilityForm" (ngSubmit)="addAvailability()">
+        <div class="form-row">
+          <div class="field">
+            <label for="av-day">Day</label>
+            <select id="av-day" formControlName="dayOfWeek">
+              @for (day of days; track day) {
+                <option [value]="day">{{ day }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label for="av-start">Start</label>
+            <input id="av-start" type="time" formControlName="startTime" />
+          </div>
+          <div class="field">
+            <label for="av-end">End</label>
+            <input id="av-end" type="time" formControlName="endTime" />
+          </div>
+          <div class="field">
+            <button type="submit" class="button-small" [disabled]="addingAvailability()">
+              {{ addingAvailability() ? 'Adding…' : '+ Add period' }}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  }
 }

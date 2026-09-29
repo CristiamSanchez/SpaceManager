@@ -13,6 +13,9 @@ public class InMemoryProfessionalRepository : IProfessionalRepository
         return Task.CompletedTask;
     }
 
+    public Task UpdateAsync(Professional professional, CancellationToken cancellationToken = default) =>
+        Task.CompletedTask; // The in-memory list already holds the mutated instance.
+
     public Task<Professional?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
         Task.FromResult(Items.FirstOrDefault(p => p.Id == id));
 

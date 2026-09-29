@@ -19,6 +19,13 @@ public class ServiceRepository : IServiceRepository
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task UpdateAsync(Service service, CancellationToken cancellationToken = default)
+    {
+        // GetByIdAsync uses AsNoTracking, so the entity arrives detached.
+        _dbContext.Services.Update(service);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     public Task<Service?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         => _dbContext.Services
             .AsNoTracking()

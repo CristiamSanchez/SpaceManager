@@ -19,6 +19,13 @@ public class ProfessionalRepository : IProfessionalRepository
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task UpdateAsync(Professional professional, CancellationToken cancellationToken = default)
+    {
+        // GetByIdAsync uses AsNoTracking, so the entity arrives detached.
+        _dbContext.Professionals.Update(professional);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     public Task<Professional?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         => _dbContext.Professionals
             .AsNoTracking()

@@ -17,4 +17,9 @@ export class ReservationApi {
   getById(id: string): Observable<ReservationDto> {
     return this.http.get<ReservationDto>(`${this.baseUrl}/${id}`);
   }
+
+  /** DELETE /api/reservations/{id} — cancel (owner or Admin). */
+  cancel(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 }

@@ -46,4 +46,49 @@ public class ServiceUseCases
 
         return Result<Service>.Success(service);
     }
+
+    public async Task<Result<Service>> UpdateAsync(
+        Guid id,
+        string? name,
+        string? description,
+        int? durationInMinutes,
+        decimal? price,
+        bool isActive,
+        CancellationToken cancellationToken = default)
+    {
+        var service = await _services.GetByIdAsync(id, cancellationToken);
+        if (service is null)
+            return Result<Service>.NotFound($"Service '{id}' was not found.");
+
+        // Same invariants as CreateAsync (mirrors the Service constructor).
+        if (string.IsNullOrWhiteSpace(name))
+            return Result<Service>.Failure("Name is required.");
+        if (durationInMinutes is null or <= 0)
+            return Result<Service>.Failure("DurationInMinutes must be greater than zero.");
+        if (price is null or < 0)
+            return Result<Service>.Failure("Price cannot be negative.");
+
+        service.Update(name, description, durationInMinutes.Value, price.Value);
+        if (isActive)
+            service.Activate();
+        else
+            service.Deactivate();
+
+        await _services.UpdateAsync(service, cancellationToken);
+
+        return Result<Service>.Success(service);
+    }
+
+    /// <summary>Soft deactivation (IsActive = false); reservations keep their history.</summary>
+    public async Task<Result<Guid>> DeactivateAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var service = await _services.GetByIdAsync(id, cancellationToken);
+        if (service is null)
+            return Result<Guid>.NotFound($"Service '{id}' was not found.");
+
+        service.Deactivate();
+        await _services.UpdateAsync(service, cancellationToken);
+
+        return Result<Guid>.Success(id);
+    }
 }

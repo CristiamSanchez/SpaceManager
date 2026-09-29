@@ -38,4 +38,42 @@ public class ProfessionalUseCases
 
         return Result<Professional>.Success(professional);
     }
+
+    public async Task<Result<Professional>> UpdateAsync(
+        Guid id,
+        string? name,
+        string? description,
+        bool isActive,
+        CancellationToken cancellationToken = default)
+    {
+        var professional = await _professionals.GetByIdAsync(id, cancellationToken);
+        if (professional is null)
+            return Result<Professional>.NotFound($"Professional '{id}' was not found.");
+
+        if (string.IsNullOrWhiteSpace(name))
+            return Result<Professional>.Failure("Name is required.");
+
+        professional.Update(name, description);
+        if (isActive)
+            professional.Activate();
+        else
+            professional.Deactivate();
+
+        await _professionals.UpdateAsync(professional, cancellationToken);
+
+        return Result<Professional>.Success(professional);
+    }
+
+    /// <summary>Soft deactivation (IsActive = false); reservations keep their history.</summary>
+    public async Task<Result<Guid>> DeactivateAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var professional = await _professionals.GetByIdAsync(id, cancellationToken);
+        if (professional is null)
+            return Result<Guid>.NotFound($"Professional '{id}' was not found.");
+
+        professional.Deactivate();
+        await _professionals.UpdateAsync(professional, cancellationToken);
+
+        return Result<Guid>.Success(id);
+    }
 }

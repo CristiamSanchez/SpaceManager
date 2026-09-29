@@ -1,5 +1,7 @@
 # Sistema de Reservas
 
+[![CI](https://github.com/CristiamSanchez/SpaceManager/actions/workflows/ci.yml/badge.svg)](https://github.com/CristiamSanchez/SpaceManager/actions/workflows/ci.yml)
+
 ## 1. Descripción
 
 Sistema web de reservas desarrollado con ASP.NET Core, utilizando Clean Architecture.
@@ -308,9 +310,13 @@ Frontend Angular (`src/SpaceManager.Web`).
 
 ### Fase 17
 
-CI/CD.
+Frontend: administración CRUD (servicios, profesionales, disponibilidad y reservas) y tema oscuro.
 
 ### Fase 18
+
+CI con GitHub Actions (build + test).
+
+### Fase 19
 
 Revisión final y documentación.
 
@@ -356,8 +362,9 @@ El agente no debe implementar fases futuras salvo que se solicite explícitament
 | 14. Docker         | Completada |
 | 15. Git/GitHub     | Completada |
 | 16. Frontend       | Completada |
-| 17. CI/CD          | Pendiente |
-| 18. Revisión final | Pendiente |
+| 17. Admin y oscuro | Completada |
+| 18. CI/CD          | Completada |
+| 19. Revisión final | Pendiente |
 
 ### Ejecución local (Docker + PostgreSQL)
 
@@ -382,7 +389,9 @@ El password real vive solo en `.env`/variables de entorno: `appsettings.json` co
 La aplicación Angular vive en [`src/SpaceManager.Web`](src/SpaceManager.Web) y consume `Reservation.Api` (`http://localhost:5163`).
 
 - Angular 22 con standalone components, Router, HttpClient (interceptor JWT) y Reactive Forms. Sin librerías de UI ni de estado global (sin Material/PrimeNG/Tailwind/NgRx); la única configuración de entorno es `environment.apiUrl` y no hay secretos en el frontend.
+- **Tema oscuro** (`styles.css` con variables CSS y `color-scheme: dark`) con layout compacto.
 - Rutas públicas: `/login`, `/register`, `/services`, `/professionals`. Rutas protegidas: `/dashboard`, `/reservations` (redirigen a `/login` si no hay JWT).
+- **Administración:** con rol `Admin`, la lista de servicios y la de profesionales habilitan alta, edición y activación/desactivación; el botón **Manage** de cada profesional permite asignarle servicios y administrar su disponibilidad semanal. En reservas, el Admin ve todas con columnas de usuario/servicio/profesional y puede cancelar. El cliente mantiene una vista de solo lectura ("My reservations"). El backend vuelve a validar cada operación (401/403).
 - Ejecución local, con la API y PostgreSQL en marcha:
 
   ```bash
@@ -392,4 +401,19 @@ La aplicación Angular vive en [`src/SpaceManager.Web`](src/SpaceManager.Web) y 
   ```
 
 La API permite en desarrollo el origen `http://localhost:4200` mediante una política CORS explícita de solo desarrollo en `Program.cs` (nunca `AllowAnyOrigin` con credenciales ni una política amplia de producción).
+
+### Capturas de pantalla
+
+| | |
+| --- | --- |
+| **Inicio de sesión**<br>![Inicio de sesión en tema oscuro](docs/screenshots/login-dark.png) | **Dashboard (Admin)**<br>![Dashboard con rol Admin](docs/screenshots/dashboard-admin.png) |
+| **Servicios — vista Admin**<br>![CRUD de servicios como Admin](docs/screenshots/services-admin.png) | **Profesional — panel Manage**<br>![Asignación de servicios y horario](docs/screenshots/professionals-manage.png) |
+| **Reservas — vista Admin**<br>![Todas las reservas con columnas de administrador](docs/screenshots/reservations-admin.png) | **Servicios — vista Cliente**<br>![Vista de solo lectura como Cliente](docs/screenshots/services-client.png) |
+
+### Credenciales de desarrollo
+
+Para probar la interfaz (no almacenadas en el repositorio; la base local las crea el propio proceso de desarrollo):
+
+- Admin: `admin.local@test.local` — ver `docs/project-state.md` (Fase 14: promoción de rol por SQL directo) para el procedimiento de creación.
+- Cualquier usuario registrado con rol `Client` ve la interfaz de solo lectura.
 

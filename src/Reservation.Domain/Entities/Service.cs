@@ -39,6 +39,22 @@ public class Service
         Name = null!;
     }
 
+    public void Update(string name, string? description, int durationInMinutes, decimal price)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Name cannot be empty.", nameof(name));
+        if (durationInMinutes <= 0)
+            throw new ArgumentOutOfRangeException(nameof(durationInMinutes), durationInMinutes, "Duration must be greater than zero.");
+        if (price < 0)
+            throw new ArgumentOutOfRangeException(nameof(price), price, "Price cannot be negative.");
+
+        Name = name;
+        Description = description;
+        DurationInMinutes = durationInMinutes;
+        Price = price;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void Activate()
     {
         IsActive = true;

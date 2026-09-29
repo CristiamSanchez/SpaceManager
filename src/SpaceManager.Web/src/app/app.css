@@ -3,48 +3,53 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.75rem 1.5rem;
-  background: #1f2937;
+  padding: 0.55rem 1.5rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .brand {
-  color: #fff;
+  color: var(--text);
   font-weight: 700;
   text-decoration: none;
-  font-size: 1.05rem;
+  font-size: 1rem;
 }
 
 .topbar nav {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.9rem;
 }
 
 .topbar nav a {
-  color: #d1d5db;
+  color: var(--text-muted);
   text-decoration: none;
-  font-size: 0.95rem;
-  padding: 0.25rem 0;
+  font-size: 0.9rem;
+  padding: 0.2rem 0;
   border-bottom: 2px solid transparent;
 }
 
 .topbar nav a:hover,
 .topbar nav a.active {
-  color: #fff;
-  border-bottom-color: #60a5fa;
+  color: var(--text);
+  border-bottom-color: var(--accent);
 }
 
 .nav-button {
   background: transparent;
-  color: #d1d5db;
-  border: 1px solid #4b5563;
-  padding: 0.3rem 0.75rem;
+  color: var(--text-muted);
+  border: 1px solid var(--border-strong);
+  padding: 0.25rem 0.7rem;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  margin-top: 0;
 }
 
 .nav-button:hover {
-  color: #fff;
-  border-color: #9ca3af;
+  color: var(--text);
+  border-color: var(--text-muted);
 }

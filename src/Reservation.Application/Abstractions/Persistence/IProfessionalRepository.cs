@@ -9,6 +9,8 @@ public interface IProfessionalRepository
 {
     Task AddAsync(Professional professional, CancellationToken cancellationToken = default);
 
+    Task UpdateAsync(Professional professional, CancellationToken cancellationToken = default);
+
     Task<Professional?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<Professional>> GetAllAsync(CancellationToken cancellationToken = default);

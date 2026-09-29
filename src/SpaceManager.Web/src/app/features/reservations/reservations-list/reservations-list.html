@@ -1,34 +1,73 @@
-<h1>My reservations</h1>
+<div class="page-head">
+  <h1>{{ auth.isAdmin() ? 'All reservations' : 'My reservations' }}</h1>
+</div>
 
 @if (loading()) {
   <app-state-message kind="loading" message="Loading reservations…" />
 } @else if (error(); as message) {
   <app-state-message kind="error" [message]="message" />
 } @else if (reservations().length === 0) {
-  <app-state-message kind="empty" message="You have no reservations yet." />
+  <app-state-message
+    kind="empty"
+    [message]="auth.isAdmin() ? 'No reservations yet.' : 'You have no reservations yet.'"
+  />
 } @else {
   <table>
     <thead>
       <tr>
+        @if (auth.isAdmin()) {
+          <th>User</th>
+          <th>Service</th>
+          <th>Professional</th>
+        }
         <th>Start</th>
         <th>End</th>
         <th>Status</th>
         <th>Notes</th>
+        <th class="col-actions"><span class="sr-only">Actions</span></th>
       </tr>
     </thead>
     <tbody>
       @for (reservation of reservations(); track reservation.id) {
         <tr>
+          @if (auth.isAdmin()) {
+            <td class="mono" [title]="reservation.userId">{{ reservation.userId.slice(0, 8) }}…</td>
+            <td class="mono" [title]="reservation.serviceId">{{ reservation.serviceId.slice(0, 8) }}…</td>
+            <td class="mono" [title]="reservation.professionalId">
+              {{ reservation.professionalId.slice(0, 8) }}…
+            </td>
+          }
           <td>{{ reservation.startAt | date: 'medium' }}</td>
           <td>{{ reservation.endAt | date: 'medium' }}</td>
           <td>
-            <span class="badge" [class.badge--off]="reservation.status === 'Cancelled'">
+            <span
+              class="badge"
+              [class.badge--off]="reservation.status === 'Cancelled'"
+              [class.badge--muted]="reservation.status === 'Completed'"
+            >
               {{ reservation.status }}
             </span>
           </td>
           <td>{{ reservation.notes ?? '—' }}</td>
+          <td class="col-actions">
+            @if (canCancel(reservation)) {
+              <div class="row-actions">
+                <button
+                  type="button"
+                  class="button-danger button-small"
+                  (click)="cancel(reservation)"
+                >
+                  Cancel
+                </button>
+              </div>
+            }
+          </td>
         </tr>
       }
     </tbody>
   </table>
+
+  @if (actionError(); as message) {
+    <app-state-message kind="error" [message]="message" />
+  }
 }
