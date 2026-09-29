@@ -1,6 +1,9 @@
 # Sistema de Reservas
 
 [![CI](https://github.com/CristiamSanchez/SpaceManager/actions/workflows/ci.yml/badge.svg)](https://github.com/CristiamSanchez/SpaceManager/actions/workflows/ci.yml)
+[![Pages](https://github.com/CristiamSanchez/SpaceManager/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/CristiamSanchez/SpaceManager/actions/workflows/deploy-pages.yml)
+
+**Demo (GitHub Pages):** https://cristiamsanchez.github.io/SpaceManager/ — la interfaz está desplegada; los datos requieren la API ejecutándose en local (ver [Frontend](#frontend)).
 
 ## 1. Descripción
 
@@ -318,7 +321,11 @@ CI con GitHub Actions (build + test).
 
 ### Fase 19
 
-Revisión final y documentación.
+Despliegue de la interfaz en GitHub Pages.
+
+### Fase 20
+
+Revisión final y cierre del proyecto.
 
 ---
 
@@ -364,7 +371,8 @@ El agente no debe implementar fases futuras salvo que se solicite explícitament
 | 16. Frontend       | Completada |
 | 17. Admin y oscuro | Completada |
 | 18. CI/CD          | Completada |
-| 19. Revisión final | Pendiente |
+| 19. GitHub Pages   | Completada |
+| 20. Revisión final | Completada |
 
 ### Ejecución local (Docker + PostgreSQL)
 
@@ -401,6 +409,14 @@ La aplicación Angular vive en [`src/SpaceManager.Web`](src/SpaceManager.Web) y 
   ```
 
 La API permite en desarrollo el origen `http://localhost:4200` mediante una política CORS explícita de solo desarrollo en `Program.cs` (nunca `AllowAnyOrigin` con credenciales ni una política amplia de producción).
+
+### Demo desplegado (GitHub Pages)
+
+En cada `push` a `main`, `.github/workflows/deploy-pages.yml` compila el frontend (con `--base-href /SpaceManager/`) y lo despliega en **https://cristiamsanchez.github.io/SpaceManager/**.
+
+- El demo es **estático**: no hay API hospedada, así que `environment.apiUrl` apunta a `http://localhost:5163` y en Pages las llamadas de datos muestran "Cannot reach the server. Is the API running?".
+- Para probar la funcionalidad completa, ejecuta la API en local (ver [Ejecución local](#ejecución-local-docker--postgresql)) y el frontend con `npm start`.
+- GitHub Pages no reescribe rutas SPA: `public/404.html` redirige las rutas profundas al root, donde el router resuelve la página (la sesión se conserva en `localStorage`).
 
 ### Capturas de pantalla
 

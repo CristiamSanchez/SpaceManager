@@ -27,7 +27,30 @@ Estado actual del proyecto y decisiones tomadas. Se actualiza al finalizar cada 
 | 16. Frontend Angular | ✅ Completada | 2026-09-28 |
 | 17. Admin + tema oscuro | ✅ Completada | 2026-09-28 |
 | 18. CI/CD (GitHub Actions) | ✅ Completada | 2026-09-28 |
-| 19. Revisión final | ⬜ Pendiente | |
+| 19. GitHub Pages | ✅ Completada | 2026-09-29 |
+| 20. Revisión final y cierre | ✅ Completada | 2026-09-29 |
+
+---
+
+## Fase 20 — Revisión final y cierre (completada)
+
+* **Regresión de cierre:** `dotnet build` 0 warnings/0 errors · `dotnet test` **92/92** (24 Domain + 68 Application) · `ng build` de producción OK (incluido el build con `--base-href /SpaceManager/` de Pages) · CI en GitHub Actions ✅ · despliegue en Pages ✅ · E2E de navegador sin errores de consola.
+* **Entregables del proyecto:** API ASP.NET Core limpia (fases 0–14), frontend Angular 22 con administración y tema oscuro (16–17), CI build+test (18), demo en GitHub Pages (19), documentación (`README.md` con capturas + `docs/project-state.md`) y 92 tests unitarios.
+* **Enlaces:** repositorio `https://github.com/CristiamSanchez/SpaceManager` · Actions `https://github.com/CristiamSanchez/SpaceManager/actions` · demo `https://cristiamsanchez.github.io/SpaceManager/`.
+* **Higiene del repositorio:** sin credenciales ni secretos (`.env` ignorado; placeholders `CHANGE_ME` y JWT de desarrollo); `angular.json` fija `cli.analytics: false` (elección registrada al ejecutar `ng serve`, sin UUID de máquina).
+* **Limitaciones conocidas (aceptadas y documentadas):** sin API hospedada (el demo de Pages es estático); sin formulario de creación de reservas en la UI; borrado lógico del catálogo; sin Swagger/OpenAPI (nunca fue requisito).
+* **Estado:** proyecto **completo** según el alcance acordado con el usuario.
+
+---
+
+## Fase 19 — Despliegue en GitHub Pages (completada)
+
+* **Workflow:** `.github/workflows/deploy-pages.yml` — en cada `push` a `main` (y manual vía `workflow_dispatch`): `npm ci` → `ng build --base-href /SpaceManager/` → `actions/upload-pages-artifact@v3` con ruta `src/SpaceManager.Web/dist/SpaceManager.Web/browser` (Angular 22 emite el sitio bajo `browser/`) → `actions/deploy-pages@v4`.
+* **Permisos y entorno:** `contents: read`, `pages: write`, `id-token: write`; entorno `github-pages`; concurrencia secuencial para no solapar despliegues. No requiere secretos.
+* **Configuración del repositorio:** Settings → Pages → Source = "GitHub Actions" (habilitado con `gh api`).
+* **`public/404.html` (asset nuevo):** GitHub Pages no tiene rewrites SPA; redirige rutas profundas y refrescos al root (`https://cristiamsanchez.github.io/SpaceManager/`), donde el router de Angular resuelve la ruta y `localStorage` conserva la sesión. La ruta raíz ya redirigía a `dashboard` (con guard → `login`).
+* **Limitación documentada (`environment.ts` + README):** no hay API hospedada; `environment.apiUrl` sigue en `http://localhost:5163`, así que en el demo las llamadas de datos fallan con el mensaje contextual "Cannot reach the server. Is the API running?" y la funcionalidad completa requiere el backend en local.
+* **Demo:** https://cristiamsanchez.github.io/SpaceManager/
 
 ---
 
