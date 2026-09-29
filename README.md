@@ -433,3 +433,6 @@ Para probar la interfaz (no almacenadas en el repositorio; la base local las cre
 - Admin: `admin.local@test.local` — ver `docs/project-state.md` (Fase 14: promoción de rol por SQL directo) para el procedimiento de creación.
 - Cualquier usuario registrado con rol `Client` ve la interfaz de solo lectura.
 
+Rol	Email	Password
+Admin	admin.local@test.local	DevSmoke!2026x
+Client	cliente.local@test.local	DevSmoke!2026x
